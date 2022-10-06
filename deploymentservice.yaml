@@ -1,43 +1,33 @@
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: ubuntu
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: ubuntu
-  template:
-    metadata:
-      labels:
-        app: ubuntu
-    spec:
-      volumes:
-      - name: ubuntu-storage
-        persistentVolumeClaim:
-         claimName: ubuntu-pvc
-      containers:
-      - name: ubuntu
-        image: ass-0:latest
-        command: ["/bin/sleep", "3650d"]
-        imagePullPolicy: IfNotPresent
-        volumeMounts:
-        - mountPath: "/mnt/sdb"
-          name: ubuntu-storage
-      restartPolicy: Always
----
 apiVersion: v1
 kind: Service
 metadata:
-  labels:
-    app: ubuntu
-  name: ubuntu
+   name: ubuntu-test-service
 spec:
-  ports:
-  - port: 22
-    protocol: TCP
-    targetPort: 22
   selector:
-    app: ubuntu
-  sessionAffinity: None
-  type: LoadBalancer
+  app: ubuntu-test-app
+  ports:
+  - protocol: "TCP"
+    port: 6000
+    targetPort: 5000
+    type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ubuntu-test-app
+spec:
+  selector:
+    matchLabels:
+      app: ubuntu
+    replicas: 5
+  template:
+    metadata:
+      labels:
+      app: ubuntu-test-app
+    spec:
+      containers:
+      - name: ubuntu-test-app
+        image: 127.0.0.1:9000/ass-0
+        imagePullPolicy: IfNotPresent
+        ports:
+      - containerPort: 5000
