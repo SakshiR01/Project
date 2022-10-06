@@ -1,33 +1,38 @@
-apiVersion: v1
-kind: Service
-metadata:
-   name: ubuntu-test-service
-spec:
-  selector:
-  app: ubuntu-test-app
-  ports:
-  - protocol: "TCP"
-    port: 6000
-    targetPort: 5000
-    type: LoadBalancer
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ubuntu-test-app
+  name: ubuntu-deployment
+  labels:
+    app: ubuntu
 spec:
+  replicas: 1
   selector:
     matchLabels:
       app: ubuntu
-    replicas: 5
   template:
     metadata:
       labels:
-      app: ubuntu-test-app
+        app: ubuntu
     spec:
       containers:
-      - name: ubuntu-test-app
+      - name: ubuntu
         image: 127.0.0.1:9000/ass-0
-        imagePullPolicy: IfNotPresent
-        ports:
-      - containerPort: 5000
+        command: ["sleep", "123456"]
+      nodeSelector:
+        beta.kubernetes.io/os: linux
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ubuntu-service  
+  labels:
+    app: ubuntu
+spec:
+  ports:
+  - nodePort: 30500
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: ubuntu
+  type: NodePort
